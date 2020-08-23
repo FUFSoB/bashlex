@@ -1,6 +1,6 @@
 import os, copy
 
-from bashlex import yacc, tokenizer, state, ast, subst, flags, errors, heredoc
+from . import yacc, tokenizer, state, ast, subst, flags, errors, heredoc
 
 def _partsspan(parts):
     return parts[0].pos[0], parts[-1].pos[1]
@@ -141,8 +141,12 @@ def _expandword(parser, tokenword):
         if parser._expansionlimit == 0:
             parts = [node for node in parts if 'substitution' not in node.kind]
 
-        node = ast.node(kind='word', word=expandedword,
-                        pos=(tokenword.lexpos, tokenword.endlexpos), parts=parts)
+        if quoted:
+            node = ast.node(kind='quotedword', word=expandedword, doublequoted=doublequoted,
+                            pos=(tokenword.lexpos, tokenword.endlexpos), parts=parts)
+        else:
+            node = ast.node(kind='word', word=expandedword,
+                            pos=(tokenword.lexpos, tokenword.endlexpos), parts=parts)
         return node
 
 def p_simple_command_element(p):
@@ -360,6 +364,8 @@ def p_elif_clause(p):
     for i in range(1, len(p)):
         if isinstance(p[i], ast.node):
             parts.append(p[i])
+        elif isinstance(p[i], list):
+            parts.extend(p[i])
         else:
             parts.append(ast.node(kind='reservedword', word=p[i], pos=p.lexspan(i)))
     p[0] = parts

@@ -15,11 +15,23 @@ def wordnode(word, s=None, parts=None):
         s = word
     if parts is None:
         parts = []
-    return ast.node(kind='word', word=word, s=s, parts=list(parts))
+    node = ast.node(kind='word', word=word, s=s, parts=list(parts))
+
+    if any(q in s for q in ('"', "'", "`")):
+        node.kind = 'quotedword'
+        node.doublequoted = s.startswith('"')
+
+    return node
 
 def assignmentnode(word, s=None, parts=None):
     node = wordnode(word, s, parts)
     node.kind = 'assignment'
+    return node
+
+def quotedwordnode(word, s=None, doublequoted=False, parts=None):
+    node = wordnode(word, s, parts)
+    node.kind = 'quotedword'
+    node.doublequoted = doublequoted
     return node
 
 def parameternode(value, s):
@@ -723,7 +735,7 @@ class test_parser(unittest.TestCase):
         self.assertASTEquals(s,
                 commandnode(s,
                   wordnode('a'),
-                  wordnode(';', '\\;')))
+                  quotedwordnode(';', '\\;', False))) # why is it quoted?
 
     def test_heredoc_spec(self):
         for redirect_kind in ('<<', '<<<'):
@@ -1098,3 +1110,6 @@ class test_parser(unittest.TestCase):
               ])
             ),
         )
+
+if __name__ == "__main__":
+    unittest.main()

@@ -83,6 +83,11 @@ class nodevisitor(object):
             if dochild is None or dochild:
                 for child in n.parts:
                     self.visit(child)
+        elif k == "quotedword":
+            dochild = self._visitnode(n, n.word, n.doublequoted)
+            if dochild is None or dochild:
+                for child in n.parts:
+                    self.visit(child)
         elif k in ('parameter', 'tilde', 'heredoc'):
             self._visitnode(n, n.value)
         elif k in ('commandsubstitution', 'processsubstitution'):
@@ -120,6 +125,8 @@ class nodevisitor(object):
     def visitfunction(self, n, name, body, parts):
         pass
     def visitword(self, n, word):
+        pass
+    def visitquotedword(self, n, word, doublequoted):
         pass
     def visitassignment(self, n, word):
         pass
